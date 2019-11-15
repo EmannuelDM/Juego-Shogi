@@ -7,7 +7,7 @@ class Rey(PiezaShogi):
 
 
     def mover(self, x2, y2):
-        if abs(x2-self.x) == 1 or abs(y2-self.y) == 1:
+        if abs(x2-self.x) < 2 and abs(y2-self.y) <2:
             return True
         else:
             return False

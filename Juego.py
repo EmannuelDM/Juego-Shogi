@@ -10,14 +10,19 @@ from Lancero import Lancero
 class Juego:
     def __init__(self):
         self.turno = 1
+        self.board = []
+
+        # Guardo a los reyes para consultar sus coordenadas en cada turno
+        self.rey_player_1 = Rey(0, 4, 1, self.board)  # rey
+        self.rey_player_2 = Rey(8, 4, 2, self.board)  # rey oponente
 
         # Inicializando Tablero
         self.board = [[0 for i in range(9)] for i in range(9)]
         for i in range(9):
             self.board[2][i] = Peon(2,i,1,self.board) # aqui van los peones
             self.board[6][i] = Peon(6,i,2,self.board) # aqui van los peones oponentes
-        self.board[0][4] = Rey(0,4,1,self.board) # rey
-        self.board[8][4] = Rey(8,4,2,self.board) # rey oponente
+        self.board[0][4] = self.rey_player_1
+        self.board[8][4] = self.rey_player_2
 
         self.board[0][5] = Oro(0,5,1,self.board) # Oro derecho
         self.board[0][3] = Oro(0,3,1,self.board) # oro izquierdo
@@ -86,8 +91,9 @@ class Juego:
             self.turno = 2
         else:
             self.turno = 1
+        self.es_jacke_mate()
 
-    def promocionar_pieza(self, x, y ):
+    def promocionar_pieza(self, x, y):
         # Es una pieza promocionable?
         if hasattr(self.board[x][y], 'promocionada'):
             # Es una pieza del jugador de turno?
@@ -116,5 +122,54 @@ class Juego:
         else:
             print("No es promocionable")
             return False
+
     def recuperar_pieza(self):
         pass
+
+    def es_jacke_mate(self):
+        mov_del_rey = [] # Las diferentes coordenadas a las que puede moverse el rey
+        piezas_flanqueantes = [] # lista de piezas que ponen en jaque al rey o que flanquean sus movimientos
+        rey_en_jaque = False
+        bloqueado = False # el rey esta bloqueado para hacer cualquier movimiento
+
+        # Comprobar turno del jugador
+        if self.turno == 1:
+            rey = self.rey_player_1
+        else:
+            rey = self.rey_player_2
+
+        #TODO contemplar que el rey no controla si hay piezas suyas alrededor
+        # Guarda en la lista los movimientos que puede hacer actualmente el rey
+        for mov in [(0,1),(0,-1),(1,0),(-1,0),(1,1),(-1,-1),(1,-1),(-1,1)]:
+            if rey.mover(rey.x+mov[0], rey.y+mov[1]):
+                mov_del_rey.append((rey.x+mov[0],rey.y+mov[1]))
+        # Copia temporal de los mocimientos
+        mov_del_rey_2 = mov_del_rey[:]
+        #Recorro el tablero
+        for fila in self.board:
+            for pieza in fila:
+                # Busco las piezas oponentes
+                if pieza != 0 and pieza.jugador != self.turno:
+                    # busco las piezas que puedan ponerlo en jaque
+                    if pieza.mover(rey.x,rey.y):
+                        rey_en_jaque = True
+                        #TODO contemplar que no tengo que agregar mas de una vez la misma pieza
+                        #TODO no se contempla que las piezas pueden considerar pasos fuera el tablero
+                        piezas_flanqueantes.append(pieza)
+                    # busco las piezas oponentes que bloqueen los movimientos del rey
+                    for i in range(len(mov_del_rey)):
+                        if pieza.mover(mov_del_rey[i][0],mov_del_rey[i][1]):
+                            piezas_flanqueantes.append(pieza)
+                            # Elimino de la segunda lista, esa coordenada flanqueda
+                            for j in mov_del_rey_2:
+                                if j[0] == mov_del_rey[i][0] and j[1] == mov_del_rey[i][1]:
+                                    del mov_del_rey_2[mov_del_rey_2.index(j)]
+        # Si todos los movimientos del rey estan bloqueados:
+        if len(mov_del_rey_2) == 0:
+            bloqueado = True
+            print("Rey "+str(rey.jugador)+" bloqueado")
+        if rey_en_jaque:
+            print("Rey "+str(rey.jugador)+" en jaque")
+
+        #TODO completar el resto del codigo para determinar si es mate
+

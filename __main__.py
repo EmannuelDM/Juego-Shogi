@@ -13,25 +13,26 @@ class Partida():
         self.raiz.geometry('700x500')
         self.raiz.configure(bg = 'beige')
         self.raiz.title('Shogi Time')
+        #TODO arreglar botton Salir
         ttk.Button(self.raiz, text='Salir',
                    command=self.raiz.destroy)
 
         self.graphicBoard = self.get_board()
 
         self.PromButton = tk.Button(self.raiz, text = "Promocionar")
-        self.PromButton.config(command = self.promover)
+        self.PromButton.config(command = self.click_promover)
         self.PromButton.grid(column=9, row=9)
 
         self.raiz.mainloop()
 
-
+    # Crear el tablero de botones
     def get_board(self):
         board = []
         for i in range(9):
             row = []
             for j in range(9):
                 b = tk.Button(self.raiz, text=self.get_name(i,j), height = 2, width = 5)
-                b.config(command=lambda widget=b: self.click_button(widget))
+                b.config(command=lambda widget=b: self.click_en_tablero(widget))
                 b.grid(column=j, row=i)
                 #Store row and column indices as a Button attribute
                 b.position = (i, j)
@@ -39,13 +40,14 @@ class Partida():
             board.append(row)
         return board
 
+    # Obtener nombre de la pieza seleccionada
     def get_name(self,i,j):
         if self.juego.board[i][j] != 0:
             return self.juego.board[i][j].nombre
         else:
             return " "
 
-    def click_button(self, widget):
+    def click_en_tablero(self, widget):
         print(widget.position)
         x,y = widget.position
         widget.focus()
@@ -80,7 +82,7 @@ class Partida():
             else:
                 print("Falta seleccionar una pieza")
 
-    def promover(self):
+    def click_promover(self):
         # pieza seleccionada previamente?
         if len(self.pieza_seleccionada) != 0:
             x = self.pieza_seleccionada[0]
